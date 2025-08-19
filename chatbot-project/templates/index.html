@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Đại học</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+        <h2>Chatbot Đại học</h2>
+        <div id="chatlog" class="chatlog" aria-live="polite"></div>
+        <div class="controls">
+            <input id="userInput" type="text" placeholder="Nhập tin nhắn và nhấn Enter..." autofocus />
+            <button id="sendBtn">Gửi</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const chatlog = document.getElementById("chatlog");
+const input = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
+
+function appendBubble(text, who) {
+    const p = document.createElement("p");
+    p.className = "bubble " + who;
+    p.textContent = text;
+    chatlog.appendChild(p);
+    chatlog.scrollTop = chatlog.scrollHeight;
+}
+
+async function sendMessage() {
+    const message = input.value.trim();
+    if(!message) return;
+    appendBubble(message, "user");
+    input.value = "";
+
+    try {
+        const res = await fetch("/chat", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({message})
+        });
+        const data = await res.json();
+        appendBubble(data.reply, "bot");
+    } catch {
+        appendBubble("Có lỗi kết nối tới server.", "bot");
+    }
+}
+
+input.addEventListener("keydown", e => { if(e.key==="Enter") sendMessage(); });
+sendBtn.addEventListener("click", sendMessage);
+</script>
+</body>
+</html>
